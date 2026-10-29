@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aynalı Sofra: Bir Cumartesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Aynalı Sofra · Bir Cumartesi (örnek olay sürümü, demo)
+   Ebeveyn, kurgusal Deniz'in evinde bir cumartesi geçirir. Evin kesiti üstte, olaylar ve seçimler altta.
+   Sabahtan geceye gök rengi değişir; koridordaki ayna günün iki yarısını ayırır. */
+:root{
+  --bg:#E8ECEF; --paper:#FFFFFF; --ink:#1C2230; --muted:#5A6371; --line:#CED6DD; --soft:#F2F5F7;
+  --eb:#1F6470; --eb-soft:#DDEDEF; --er:#8E3B5A; --er-soft:#F5E2E9;
+  --cay:#B9651F; --cay-soft:#F6E6D3; --on:#FFFFFF; --focus:#2F6FD6;
+  --vurgu:var(--eb); --vurgu-soft:var(--eb-soft);
+  --duvar:#FBF7F1; --cati:#7C4A3A; --zemin:#C9B79C; --esya:#D9CBB6; --koyu-esya:#8A7B67;
+  --serif:"Alegreya", Georgia, "Times New Roman", serif;
+  --sans:"Alegreya Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141920; --paper:#1C232C; --ink:#E6EBF0; --muted:#9BA6B2; --line:#2E3843; --soft:#222A34;
+    --eb:#72C3CD; --eb-soft:#173A40; --er:#E994B3; --er-soft:#3F2331; --cay:#E6A15C; --cay-soft:#3B2A18;
+    --on:#10161C; --focus:#8DB4FF; --duvar:#2A2F37; --cati:#5E3A30; --zemin:#4A4033; --esya:#4B4F57; --koyu-esya:#6E6658; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141920; --paper:#1C232C; --ink:#E6EBF0; --muted:#9BA6B2; --line:#2E3843; --soft:#222A34;
+  --eb:#72C3CD; --eb-soft:#173A40; --er:#E994B3; --er-soft:#3F2331; --cay:#E6A15C; --cay-soft:#3B2A18;
+  --on:#10161C; --focus:#8DB4FF; --duvar:#2A2F37; --cati:#5E3A30; --zemin:#4A4033; --esya:#4B4F57; --koyu-esya:#6E6658; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5}
+.sayfa{max-width:38rem;margin:0 auto;padding:12px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px}
+h1,h2,h3{font-family:var(--serif);font-weight:700;line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+.gizli{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Üst bilgi: saat ve günün akışı */
+.ust{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.marka{font-family:var(--serif);font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.etiket{font-family:var(--sans);font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cay-soft);color:var(--cay)}
+.puan{font-size:.9rem;font-weight:700;color:var(--cay);font-variant-numeric:tabular-nums}
+.gun{display:flex;align-items:center;gap:12px}
+.saat{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums;min-width:4.2ch}
+.gun-bilgi{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.gun-bilgi b{font-weight:800}
+.gun-bilgi span{font-size:.88rem;color:var(--muted)}
+.cizgi{display:flex;gap:4px}
+.cizgi i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.cizgi i.bitti{background:color-mix(in srgb, var(--vurgu) 45%, var(--line))}
+.cizgi i.simdi{background:var(--vurgu)}
+
+/* Ev kesiti */
+.ev{border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+.ev svg{display:block;width:100%;height:auto}
+.gok{transition:fill 1.2s ease}
+.duvar{fill:var(--duvar)} .cati{fill:var(--cati)} .zemin{fill:var(--zemin)}
+.ic-duvar{stroke:var(--koyu-esya);stroke-width:2}
+.esya{fill:var(--esya)} .koyu{fill:var(--koyu-esya)}
+.oda-isik{fill:var(--vurgu);opacity:0;transition:opacity .6s ease}
+.oda-isik.acik{opacity:.14}
+.oda-ad{font-family:var(--sans);font-size:9.5px;font-weight:700;fill:var(--muted)}
+.cam{fill:url(#camRenk)}
+.ayna-cam{fill:url(#aynaRenk);stroke:var(--koyu-esya);stroke-width:1.5}
+.ayna-cam.parla{animation:parla 1.6s ease 2}
+@keyframes parla{50%{fill:#FFFFFF}}
+.figur{transition:transform 1s cubic-bezier(.45,0,.25,1), opacity .6s ease}
+.figur text{font-family:var(--sans);font-size:9px;font-weight:800;text-anchor:middle;fill:var(--ink)}
+.figur.yok{opacity:0}
+.figur .ten{fill:#E7C3A0}
+@media (prefers-reduced-motion: reduce){.figur,.gok,.oda-isik{transition:none}.ayna-cam.parla{animation:none}}
+
+/* Olay paneli */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px 18px;display:flex;flex-direction:column;gap:16px}
+.panel h2{font-size:1.5rem}
+.panel h2:focus,.panel p:focus{outline:none}
+.anlat{font-family:var(--serif);font-size:1.22rem;line-height:1.45}
+.konusma{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:4px 16px 16px 16px;background:var(--soft)}
+.konusma.siz{border-radius:16px 4px 16px 16px;background:var(--eb-soft);align-self:stretch}
+.konusma .kim{font-weight:800;font-size:.9rem}
+.konusma .soz{font-family:var(--serif);font-size:1.22rem;line-height:1.4}
+.konusma.deniz .kim{color:var(--er)} .konusma.siz .kim{color:var(--eb)} .konusma.sevim .kim,.konusma.komsu .kim{color:var(--cay)}
+.ic-ses{font-weight:800;font-size:1.05rem}
+.oncu{font-size:1.05rem;color:var(--muted)}
+.not{font-size:.9rem;color:var(--muted)}
+.liste{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
+
+fieldset.soru{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+fieldset.soru legend{font-weight:800;font-size:1.05rem;padding:0;margin-bottom:10px}
+.ipucu{font-weight:500;color:var(--muted);font-size:.92rem}
+.secenekler{display:flex;flex-direction:column;gap:8px}
+.secenekler.yatay{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:6px}
+.secenekler.yatay .sec{flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:10px 6px;min-height:64px;font-size:.95rem}
+.sec{display:flex;align-items:center;gap:12px;min-height:52px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);cursor:pointer;line-height:1.35}
+.sec input{accent-color:var(--vurgu);width:1.15rem;height:1.15rem;flex:none;margin:0}
+.sec.secili{border-color:var(--vurgu);background:var(--vurgu-soft)}
+.sec.kapali{opacity:.45;cursor:not-allowed}
+.metin-alani{width:100%;font:inherit;color:var(--ink);background:var(--soft);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea.metin-alani{min-height:84px;resize:vertical}
+.alan{display:flex;flex-direction:column;gap:6px}
+.alan label{font-weight:800}
+.alan .sayi{font-size:.85rem;color:var(--muted);align-self:flex-end;font-variant-numeric:tabular-nums}
+.onay{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--soft);cursor:pointer}
+.onay input{accent-color:var(--vurgu);width:1.2rem;height:1.2rem;margin-top:2px;flex:none}
+.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.likert .sec{justify-content:center;flex-direction:column;gap:4px;padding:8px 4px;min-height:56px;font-weight:800}
+.likert-uclar{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-top:-2px}
+.ifade{font-family:var(--serif);font-size:1.2rem;line-height:1.4;padding:12px 14px;border-left:4px solid var(--cay);background:var(--soft);border-radius:0 12px 12px 0}
+.ikili{display:flex;flex-direction:column;gap:14px}
+
+.kaydirici{display:flex;flex-direction:column;gap:8px}
+.kaydirici output{font-family:var(--serif);font-size:2.6rem;font-weight:700;line-height:1;color:var(--cay);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--cay);height:36px}
+.olcek{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted)}
+.karsilastir{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.karsilastir div{border-radius:12px;padding:12px;background:var(--soft)}
+.karsilastir b{display:block;font-family:var(--serif);font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.karsilastir .gercek{background:var(--cay-soft)} .karsilastir .gercek b{color:var(--cay)}
+.karsilastir .etiket{display:inline-block;margin-top:4px}
+.cubuk{position:relative;height:14px;border-radius:7px;background:var(--line)}
+.cubuk i{position:absolute;top:-5px;width:4px;height:24px;border-radius:2px;transform:translateX(-2px)}
+.cubuk .t{background:var(--ink)} .cubuk .g{background:var(--cay)}
+
+/* Deniz'in gözünden */
+.gozunden{display:flex;flex-direction:column;gap:12px}
+.gozunden article{padding:14px 16px;border-radius:14px;background:var(--er-soft);display:flex;flex-direction:column;gap:4px}
+.gozunden h3{font-family:var(--sans);font-size:.92rem;font-weight:800;color:var(--er)}
+.gozunden p{font-family:var(--serif);font-style:italic;font-size:1.2rem;line-height:1.45}
+
+/* Gün sonu defteri */
+.defter{width:100%;border-collapse:collapse;font-size:.95rem}
+.defter th{text-align:left;font-weight:800;padding:8px 6px 8px 0;vertical-align:top;width:38%;color:var(--muted)}
+.defter td{padding:8px 0;vertical-align:top}
+.defter tr+tr th,.defter tr+tr td{border-top:1px solid var(--line)}
+
+.kod{font-weight:800;font-size:1.35rem;letter-spacing:.06em;padding:14px;border-radius:12px;background:var(--cay-soft);text-align:center;font-variant-numeric:tabular-nums;line-height:1.5}
+.kod span{white-space:nowrap}
+details{font-size:.9rem;color:var(--muted)}
+details pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);padding:10px;border-radius:10px;max-height:260px;overflow:auto;color:var(--ink)}
+.durum-kutu{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.durum-kutu.iyi{background:var(--eb-soft)} .durum-kutu.uyari{background:var(--cay-soft)}
+.soru-buyuk{font-family:var(--serif);font-size:1.55rem;line-height:1.3;font-weight:700}
+
+.eylemler{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.btn{border:0;border-radius:14px;min-height:54px;padding:12px 20px;font-weight:800;font-size:1.05rem;background:var(--vurgu);color:var(--on)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.gec{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:.95rem;padding:8px;align-self:center}
+.imza{font-size:.85rem;color:var(--muted);text-align:center}
+
+/* Çay bardakları (ayna anı) */
+.bardaklar{display:block;width:100%;height:auto;max-height:150px}
+.bardaklar .masa{stroke:var(--line);stroke-width:3;stroke-linecap:round}
+.bardaklar .ayna{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 6;opacity:.7}
+.bardaklar .bardak{fill:color-mix(in srgb, var(--paper) 70%, transparent);stroke-width:2.5}
+.bardaklar .sol .bardak,.bardaklar .sol .kasik,.bardaklar .sol .tabak{stroke:var(--eb)}
+.bardaklar .sag .bardak,.bardaklar .sag .kasik,.bardaklar .sag .tabak{stroke:var(--er)}
+.bardaklar .cay{fill:var(--cay);opacity:.85}
+.bardaklar .tabak,.bardaklar .kasik{fill:none;stroke-width:2.5;stroke-linecap:round}
+.bardaklar .seker{fill:var(--paper);stroke:var(--muted);stroke-width:1.5}
+.bardaklar .ikisi{transform-box:view-box;transform-origin:160px 0;animation:ayna 1.4s cubic-bezier(.65,0,.35,1) .35s forwards}
+@keyframes ayna{to{transform:scaleX(-1)}}
+@media (prefers-reduced-motion: reduce){.bardaklar .ikisi{animation:none;transform:scaleX(-1)}}
+
+@media (min-width:560px){
+  .panel{padding:26px}
+  .eylemler{flex-direction:row-reverse;justify-content:space-between;align-items:center}
+  .eylemler .btn{min-width:12rem}
+}
+</style>
+</head>
+<body>
+<div class="sayfa">
+  <div id="ust"></div>
+  <div class="ev" id="ev"></div>
+  <div id="app" aria-live="polite"></div>
+</div>
+
+<script>
+/* ===================== AYARLAR ===================== */
+// Apps Script web uygulamasının adresi (…/exec ile biter). Boşsa demo modunda çalışır: hiçbir veri gönderilmez.
+const GONDERIM_ADRESI = "";
+const SURUM = "demo-olay-1";
+
+/* ===================== İÇERİK =====================
+   DEMO: Olaylar, seçenekler, oranlar ve Deniz'in cümleleri örnektir.
+   Gerçek oyunda öğrenci ekibi bunları 1. aşamadaki anket sonuçlarından dolduracak.
+   Veri alanları ilk demoyla aynıdır; iki sürümün kayıtları aynı tabloya yazılabilir. */
+const SENARYOLAR = [{ id: "s1", ad: "Unutulan söz" }, { id: "s2", ad: "Akrabaların yanında" }];
+const GEREK = [["evet", "Evet"], ["duruma_gore", "Duruma göre"], ["hayir", "Hayır"]];
+const EB_SECENEK = [
+  ["acik_ozur", "“Özür dilerim, hata bendeydi.” derim."],
+  ["aciklama", "Neden böyle olduğunu açıklarım."],
+  ["onarim", "Durumu düzeltmek için ne yapabileceğimi söylerim."],
+  ["dolayli", "Bir şey söylemeden gönlünü alırım: sevdiği bir şeyi yaparım ya da şakayla yumuşatırım."],
+  ["soz", "“Bir daha olmayacak.” derim."],
+  ["sessiz", "Bir şey yapmam, zamanla geçer."],
+  ["kucumseme", "“Bu kadar büyütecek bir şey yok.” derim."],
+  ["baska", "Başka bir şey yaparım"]
+];
+const ER_SECENEK = [
+  ["acik_ozur", "“Özür dilerim, hata bendeydi.” demesini"],
+  ["aciklama", "Neden böyle olduğunu açıklamasını"],
+  ["onarim", "Durumu düzeltmek için bir şey önermesini"],
+  ["dolayli", "Bir şey söylemeden gönlümü almasını"],
+  ["soz", "“Bir daha olmayacak.” demesini"],
+  ["sessiz", "Bir şey yapmasını beklemem, zamanla geçer"],
+  ["baska", "Başka bir şey beklerim"]
+];
+// Seçimlerinizin hikâyedeki karşılığı (oyuncunun konuşma balonu)
+const YANIT = {
+  s1: { acik_ozur: "Özür dilerim, hata bendeydi.", aciklama: "Bu hafta çok yoğundum, tamamen aklımdan çıkmış.", onarim: "Gel, birlikte yeni bir gün belirleyelim.",
+        dolayli: "(Akşam için Deniz’in sevdiği mantıyı yapmaya karar verdiniz.)", soz: "Bir daha olmayacak.", sessiz: "(Bir şey demediniz.)",
+        kucumseme: "Bu kadar büyütecek bir şey yok, başka zaman gideriz." },
+  s2: { acik_ozur: "Özür dilerim, hata bendeydi.", aciklama: "Öyle demek istemedim, sohbet öyle gelişti.", onarim: "Sevim Hanım’a öyle olmadığını ben söylerim.",
+        dolayli: "(Deniz’in tabağına en sevdiği tatlıdan bir dilim daha koydunuz.)", soz: "Bir daha olmayacak.", sessiz: "(Bir şey demediniz.)",
+        kucumseme: "Şaka yaptık canım, bu kadar büyütme." }
+};
+// Deniz'in gözünden: gerçek oyunda ankete katılan ergenlerin anlatımlarından derlenecek.
+const GOZUNDEN = {
+  s1: { acik_ozur: "“Özür dilerim” dedi. Beklemiyordum, biraz şaşırdım.",
+        aciklama: "Neden unuttuğunu anlattı. Haklı olabilir ama içim yine de buruk.",
+        onarim: "Yeni bir gün belirleyelim dedi. Bakalım.",
+        soz: "“Bir daha olmayacak” dedi. Umarım.",
+        dolayli: "Bir şey demedi ama akşam sevdiğim yemeği yaptı. Sanırım bu onun özür dileme şekli.",
+        sessiz: "Hiçbir şey olmamış gibi davrandı. Ben de öyle yaptım.",
+        kucumseme: "“Büyütme” dedi. Benim için büyük bir şeydi ama.",
+        baska: "Kendine göre bir şey yaptı. Ne demek istediğini düşündüm." },
+  s2: { acik_ozur: "Herkesin önünde olanlardan sonra özür diledi. Rahatladım.",
+        aciklama: "Öyle demek istemediğini söyledi. Ama herkes duymuştu bir kere.",
+        onarim: "Sevim Teyze’ye öyle olmadığını söyleyeceğini söyledi. Bunu yapması önemli.",
+        soz: "Bir daha olmayacak dedi. O an çok utanmıştım.",
+        dolayli: "Masada bana fazladan tatlı verdi. Anladım ama keşke bir de söyleseydi.",
+        sessiz: "Kimse bir şey demedi, sohbet devam etti. Ben de sustum.",
+        kucumseme: "Şakaydı dedi. Benim için şaka değildi.",
+        baska: "Kendine göre bir şey yaptı. Ne demek istediğini düşündüm." }
+};
+const ONCELIK = ["acik_ozur", "onarim", "soz", "aciklama", "dolayli", "kucumseme", "sessiz", "baska"];
+const SAYILIR = [
+  { id: "say1", t: "Tartışmadan sonra odasını kendiliğinden topluyor." },
+  { id: "say2", t: "Size bir bardak çay getirip yanınıza oturuyor." },
+  { id: "say3", t: "Hiçbir şey olmamış gibi yanınıza gelip sohbet açıyor." }
+];
+const SAY_SEC = [["sayarim", "Özür sayarım"], ["sozle_de", "Sözle de söylemeli"], ["saymam", "Özür saymam"]];
+const BENCEVRE = [
+  { id: "bc1", t: "Ebeveyn çocuğundan özür dilerse sözünün değeri azalır." },
+  { id: "bc2", t: "Ebeveynin özür dilemesi, çocuğa hatasını kabul etmeyi öğretir." }
+];
+const BEN = [["katiliyorum", "Katılıyorum"], ["kararsizim", "Kararsızım"], ["katilmiyorum", "Katılmıyorum"]];
+const CEVRE = [["katilir", "Katılır"], ["kararsiz", "Kararsız"], ["katilmaz", "Katılmaz"]];
+const TAHMIN = [
+  { id: "t1", t: "ebeveynin sevdiği bir yemeği yapmasını özür olarak sayıyor?", gercek: 54 },
+  { id: "t2", t: "ebeveyninin kendisine açıkça “özür dilerim” dediğini hatırlıyor?", gercek: 37 },
+  { id: "t3", t: "ebeveyni özür dilediğinde ona olan saygısının arttığını söylüyor?", gercek: 71 }
+];
+const PROFIL = [
+  { k: "rol", q: "Bu oyunu kim oynuyor?", s: [["anne", "Anne"], ["baba", "Baba"], ["diger", "Başka bir bakım veren"]] },
+  { k: "cinsiyet", q: "Lisedeki çocuğunuz", s: [["kiz", "Kız"], ["erkek", "Erkek"], ["belirtilmedi", "Belirtmek istemiyorum"]] },
+  { k: "buyukler", q: "Evde sizinle birlikte büyükanne ya da büyükbaba yaşıyor mu?", s: [["evet", "Evet"], ["hayir", "Hayır"]] },
+  { k: "egitim", q: "Eğitim durumunuz", s: [["ilkokul", "İlkokul"], ["ortaokul", "Ortaokul"], ["lise", "Lise"], ["universite", "Üniversite ve üstü"], ["belirtilmedi", "Belirtmek istemiyorum"]] },
+  { k: "ortam", q: "Oyunu şu an nasıl oynuyorsunuz?", s: [["yalniz", "Yalnız"], ["cocugum_yanimda", "Çocuğum yanımda"], ["baska_biri", "Başka biriyle"]] }
+];
+const CIKIS = [
+  { id: "c1", t: "Oyundaki seçimlerim, evde gerçekte yaptıklarıma benziyor." },
+  { id: "c2", t: "Ergenlerin cevapları beni şaşırttı." },
+  { id: "c3", t: "Oyun bana ergenlerin bakışıyla ilgili yeni bir şey öğretti." },
+  { id: "c4", t: "Oyunun bazı bölümleri beni rahatsız etti." },
+  { id: "c5", t: "Oyunu anlamak ve oynamak kolaydı." }
+];
+const ILK = [["ben", "Ben"], ["cocugum", "Çocuğum"], ["ikimiz", "İkimiz"], ["kimse", "Kimse"], ["duruma_gore", "Duruma göre"]];
+const DUS = [["s1", "Unutulan söz"], ["s2", "Akrabaların yanında"], ["sayilir", "Deniz’in jestleri"], ["tahmin", "Deniz’in sınıfı ne diyor?"]];
+
+/* ===================== HİKÂYE =====================
+   Her sahne: saat, gök, aydınlanan oda, karakterlerin yeri ve sırayla gelen adımlar. */
+const hitap = () => S.profil.rol === "anne" ? "Anne" : S.profil.rol === "baba" ? "Baba" : "";
+const SAHNELER = [
+  { id: "kapi", saat: "09:00", baslik: "Başlangıç", gok: "sabah", oda: null, kisi: { siz: "disari", deniz: "oda1" },
+    adim: [{ ekran: "giris" }, { ekran: "profil" }] },
+  { id: "kahvalti", saat: "09:30", baslik: "Kahvaltı", gok: "sabah", oda: "mutfak", kisi: { siz: "mutfak0", deniz: "mutfak1" },
+    adim: [
+      { anlat: "Cumartesi sabahı, mutfakta kahvaltı hazırlıyorsunuz. Deniz 16 yaşında, lisede okuyor. Merdivenlerden koşarak iniyor." },
+      { kim: "deniz", soz: () => (hitap() ? hitap() + ", bugün" : "Bugün") + " beni sinemaya götürecektin, unutmadın değil mi? Geçen hafta söz vermiştin." },
+      { anlat: "Unutmuşsunuz. Üstelik öğlen akrabalarınızı yemeğe çağırdınız; bugün sinemaya gitmek mümkün değil." },
+      { gerek: "eb", id: "s1" }, { secim: "eb", id: "s1" }, { yanit: "s1" },
+      { anlat: "Deniz bir süre sustu, sonra odasına çıktı.", kisi: { siz: "mutfak0", deniz: "oda1" } }
+    ] },
+  { id: "ogle", saat: "13:00", baslik: "Öğle yemeği", gok: "ogle", oda: "salon", kisi: { siz: "salon0", deniz: "salon3", sevim: "salon1", emre: "salon2" },
+    adim: [
+      { anlat: "Akrabanız Sevim Hanım ve oğlu Emre öğle yemeğine geldi. Sofra kuruldu." },
+      { kim: "sevim", soz: "Deniz, okullar nasıl gidiyor bakalım?" },
+      { anlat: "Siz araya girip gülerek Deniz’in geçen dönem matematikten zayıf aldığını anlattınız. Herkes güldü, Deniz sessizleşti." },
+      { gerek: "eb", id: "s2" }, { secim: "eb", id: "s2" }, { yanit: "s2" },
+      { anlat: "Deniz tabağına baktı. Sohbet başka bir konuya geçti." }
+    ] },
+  { id: "ayna", saat: "14:30", baslik: "Koridordaki ayna", gok: "ogle", oda: "koridor", kisi: { siz: "koridor0", deniz: "oda1", sevim: "salon1", emre: "salon2" },
+    adim: [{ ayna: true }] },
+  { id: "ikindi", saat: "16:00", baslik: "İkindi çayı", gok: "ikindi", oda: "salon", yon: "er", kisi: { siz: "salon0", deniz: "salon3", sevim: "salon1", emre: "salon2" },
+    adim: [
+      { anlat: "İkindi çayı. Emre telefonundaki bir uygulamayı gösteriyor; siz de nasıl çalıştığını soruyorsunuz." },
+      { kim: "deniz", soz: "Boşuna anlatma Emre, bizimkiler teknolojiden hiç anlamaz zaten." },
+      { anlat: "Herkes güldü. Siz mahcup oldunuz." },
+      { gerek: "er", id: "s2" }, { secim: "er", id: "s2" },
+      { anlat: "Akşamüstü misafirler gitti. Siz salonda oturuyorsunuz. Deniz yanınıza geldi ve “özür dilerim” demeden, hiçbir şey olmamış gibi sohbet açtı.",
+        kisi: { siz: "salon0", deniz: "salon1", sevim: "disari", emre: "disari" } },
+      { sayilir: "say3" }
+    ] },
+  { id: "aksam", saat: "18:00", baslik: "Akşam yemeği hazırlığı", gok: "aksam", oda: "mutfak", yon: "er", kisi: { siz: "mutfak0", deniz: "oda1", sevim: "disari", emre: "disari" },
+    adim: [
+      { anlat: "Deniz sabah, akşam yemeğinde size yardım edeceğine söz vermişti. Saat altı oldu, Deniz odasında. Unutmuş. Seslenip hatırlattınız." },
+      { gerek: "er", id: "s1" }, { secim: "er", id: "s1" },
+      { anlat: "Biraz sonra Deniz mutfağa geldi. Bir şey demeden size bir bardak çay koyup yanınıza oturdu.", kisi: { siz: "mutfak0", deniz: "mutfak1" } },
+      { sayilir: "say2" }
+    ] },
+  { id: "oda", saat: "20:00", baslik: "Deniz’in odası", gok: "gece", oda: "oda", yon: "er", kisi: { siz: "oda0", deniz: "oda1" },
+    adim: [
+      { anlat: "Yemekten sonra Deniz’in odasına uğradınız. Kimse söylemeden odasını baştan sona toplamış." },
+      { sayilir: "say1" }
+    ] },
+  { id: "komsu", saat: "21:00", baslik: "Kapıda komşu", gok: "gece", oda: "antre", kisi: { siz: "antre1", deniz: "oda1", komsu: "antre0" },
+    adim: [
+      { anlat: "Kapı çaldı. Alt kattaki komşunuz Nermin Hanım, ödünç aldığı tepsiyi getirmiş. Kapıda biraz sohbet ediyorsunuz." },
+      { kim: "komsu", soz: "Bizim zamanımızda çocuktan özür mü dilenirdi? Şimdi her şey değişti." },
+      { bencevre: true }
+    ] },
+  { id: "gozunden", saat: "22:30", baslik: "Deniz’in gözünden", gok: "gece", oda: "oda", yon: "er", kisi: { siz: "salon0", deniz: "oda1", komsu: "disari" },
+    adim: [{ ekran: "gozunden" }] },
+  { id: "sinif", saat: "22:45", baslik: "Deniz’in sınıfı ne diyor?", gok: "gece", oda: null, kisi: { siz: "salon0", deniz: "oda1" },
+    adim: TAHMIN.map((t, i) => ({ tahmin: i })) },
+  { id: "defter", saat: "23:00", baslik: "Gün sonu", gok: "gece", oda: "salon", kisi: { siz: "salon0", deniz: "oda1" },
+    adim: [{ ekran: "defter" }, { ekran: "cikis" }, { ekran: "gonder" }, { ekran: "son" }] }
+];
+
+/* Evin planı (viewBox 0 0 400 230): antre | mutfak | salon | koridor | Deniz'in odası */
+const ODALAR = { antre: [10, 70, "Antre"], mutfak: [70, 150, "Mutfak"], salon: [150, 270, "Salon"], koridor: [270, 315, "Koridor"], oda: [315, 390, "Deniz’in odası"] };
+const YER = { disari: -40, antre0: 24, antre1: 54, mutfak0: 92, mutfak1: 124, salon0: 166, salon1: 196, salon2: 226, salon3: 256, koridor0: 300, oda0: 334, oda1: 366 };
+const KISILER = { siz: ["Siz", "var(--eb)"], deniz: ["Deniz", "var(--er)"], sevim: ["Sevim", "#B9651F"], emre: ["Emre", "#7A8A3A"], komsu: ["Nermin", "#6A5A9A"] };
+const GOK = { sabah: "#CFE6F5", ogle: "#B9DCF3", ikindi: "#F1D6B2", aksam: "#E5A985", gece: "#27304A" };
+
+/* ===================== YARDIMCILAR ===================== */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const temizKod = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+function karistir(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function parametre(ad) { try { return new URLSearchParams(location.search).get(ad) || ""; } catch (e) { return ""; } }
+
+function yeniDurum() {
+  const S = { sahne: 0, adim: 0, aile: temizKod(parametre("aile")), onam: false, sira: "A", basla: null, bitis: null,
+    profil: {}, eb: {}, er: {}, gecilen: {}, sayilir: {}, bc: {}, tahmin: {}, cikis: { neden: "" }, karisik: {}, gonderim: { durum: null, kod: "" } };
+  SENARYOLAR.forEach(s => {
+    S.eb[s.id] = { gerek: null, secim: [], baska: "" }; S.er[s.id] = { gerek: null, secim: [], baska: "" };
+    S.karisik["eb_" + s.id] = karistir(EB_SECENEK.filter(o => o[0] !== "baska")).concat([EB_SECENEK.find(o => o[0] === "baska")]);
+    S.karisik["er_" + s.id] = karistir(ER_SECENEK.filter(o => o[0] !== "baska")).concat([ER_SECENEK.find(o => o[0] === "baska")]);
+  });
+  BENCEVRE.forEach(b => S.bc[b.id] = { ben: null, cevre: null });
+  TAHMIN.forEach(t => S.tahmin[t.id] = { deger: 50, acik: false, atlandi: false });
+  return S;
+}
+let S = yeniDurum();
+const app = document.getElementById("app");
+function yaz(yol, d) { const p = yol.split("."); let o = S; for (let i = 0; i < p.length - 1; i++) o = o[p[i]]; o[p[p.length - 1]] = d; }
+function oku(yol) { return yol.split(".").reduce((o, k) => o == null ? o : o[k], S); }
+
+const puanHesap = (tahmin, gercek) => Math.max(0, 10 - Math.floor(Math.abs(tahmin - gercek) / 5));
+function tahminPuani(id) { const t = S.tahmin[id], d = TAHMIN.find(x => x.id === id); return t.acik && !t.atlandi ? puanHesap(t.deger, d.gercek) : 0; }
+const toplamPuan = () => TAHMIN.reduce((a, t) => a + tahminPuani(t.id), 0);
+
+const sahne = () => SAHNELER[S.sahne];
+const adim = () => sahne().adim[S.adim];
+
+/* ===================== EV KESİTİ ===================== */
+function figur(k) {
+  const [ad, renk] = KISILER[k], kucuk = k === "emre";
+  const s = kucuk ? .86 : 1;
+  return `<g class="figur yok" id="f-${k}" transform="translate(-40 200)"><g transform="scale(${s}) translate(0 ${kucuk ? 6 : 0})">
+    <path d="M-9 0 V-22 Q-9 -32 0 -32 Q9 -32 9 -22 V0 Z" fill="${renk}"/>
+    <circle class="ten" cx="0" cy="-40" r="7.5"/>
+    <text x="0" y="12">${esc(ad)}</text></g></g>`;
+}
+function evCiz() {
+  const oda = Object.entries(ODALAR).map(([k, [x1, x2, ad]]) =>
+    `<rect class="oda-isik" id="o-${k}" x="${x1}" y="70" width="${x2 - x1}" height="130"/>
+     <text class="oda-ad" x="${(x1 + x2) / 2}" y="84" text-anchor="middle">${esc(ad)}</text>`).join("");
+  document.getElementById("ev").innerHTML = `<svg viewBox="0 0 400 232" role="img" aria-label="Deniz’in evinin kesiti: antre, mutfak, salon, koridor ve Deniz’in odası">
+    <defs>
+      <linearGradient id="aynaRenk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8F1F7"/><stop offset=".5" stop-color="#B9CCDA"/><stop offset="1" stop-color="#E3EDF4"/></linearGradient>
+      <linearGradient id="camRenk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FC7E3"/><stop offset="1" stop-color="#DDEFF9"/></linearGradient>
+    </defs>
+    <rect class="gok" id="gok" x="0" y="0" width="400" height="232" fill="${GOK.sabah}"/>
+    <polygon class="cati" points="2,72 200,16 398,72"/>
+    <rect class="duvar" x="10" y="70" width="380" height="130"/>
+    ${oda}
+    <rect class="zemin" x="0" y="200" width="400" height="32"/>
+    <!-- iç duvarlar -->
+    ${[70, 150, 270, 315].map(x => `<line class="ic-duvar" x1="${x}" y1="70" x2="${x}" y2="${x === 150 ? 150 : 200}"/>`).join("")}
+    <!-- antre: kapı -->
+    <rect class="koyu" x="20" y="128" width="28" height="72" rx="2"/><circle cx="43" cy="166" r="2" fill="var(--esya)"/>
+    <!-- mutfak: pencere, tezgâh, çaydanlık -->
+    <rect class="cam" x="92" y="96" width="36" height="28" rx="2"/>
+    <rect class="esya" x="76" y="168" width="68" height="32"/><rect class="koyu" x="76" y="164" width="68" height="5"/>
+    <path class="koyu" d="M126 164 v-9 h12 v9 Z M140 158 l5 -3" /><rect class="koyu" x="128" y="150" width="8" height="5" rx="1"/>
+    <!-- salon: pencere, kanepe, sehpa -->
+    <rect class="cam" x="186" y="96" width="48" height="30" rx="2"/>
+    <rect class="esya" x="160" y="178" width="104" height="22" rx="4"/><rect class="koyu" x="160" y="170" width="104" height="9" rx="3"/>
+    <!-- koridor: boy aynası -->
+    <rect class="ayna-cam" id="aynaCam" x="279" y="112" width="27" height="78" rx="12"/>
+    <!-- Deniz'in odası: yatak, masa, pano -->
+    <rect class="esya" x="320" y="184" width="40" height="16" rx="2"/><rect class="koyu" x="320" y="176" width="10" height="10" rx="2"/>
+    <rect class="koyu" x="362" y="168" width="24" height="4"/><rect class="koyu" x="364" y="172" width="3" height="28"/><rect class="koyu" x="381" y="172" width="3" height="28"/>
+    <rect class="cam" x="336" y="98" width="34" height="26" rx="2"/>
+    ${Object.keys(KISILER).map(figur).join("")}
+  </svg>`;
+}
+function evGuncelle() {
+  const sc = sahne(), a = adim() || {};
+  document.getElementById("gok").setAttribute("fill", GOK[sc.gok]);
+  Object.keys(ODALAR).forEach(k => document.getElementById("o-" + k).classList.toggle("acik", sc.oda === k));
+  // Karakterler: sahnenin konumları, adımda değişiklik varsa o adıma kadar uygulananlar
+  const yerler = Object.assign({}, sc.kisi);
+  sc.adim.slice(0, S.adim + 1).forEach(x => { if (x.kisi) Object.assign(yerler, x.kisi); });
+  Object.keys(KISILER).forEach(k => {
+    const el = document.getElementById("f-" + k), yer = yerler[k];
+    const gorunur = yer && yer !== "disari";
+    el.classList.toggle("yok", !gorunur);
+    el.setAttribute("transform", `translate(${YER[yer || "disari"]} 200)`);
+    el.style.transform = `translate(${YER[yer || "disari"]}px, 200px)`;
+  });
+}
+
+/* ===================== PARÇALAR ===================== */
+function tekSecim(yol, baslik, secenekler, opt = {}) {
+  const secili = oku(yol);
+  return `<fieldset class="soru"><legend>${esc(baslik)}${opt.ipucu ? ` <span class="ipucu">${esc(opt.ipucu)}</span>` : ""}</legend>
+    <div class="secenekler${opt.yatay ? " yatay" : ""}"${opt.yatay ? ` style="--n:${secenekler.length}"` : ""}>${secenekler.map(([k, t]) => {
+      const id = (yol + "-" + k).replace(/\./g, "-");
+      return `<label class="sec${secili === k ? " secili" : ""}" for="${id}"><input type="radio" id="${id}" name="${esc(yol)}" value="${esc(k)}" data-tek="${esc(yol)}"${secili === k ? " checked" : ""}><span>${esc(t)}</span></label>`;
+    }).join("")}</div></fieldset>`;
+}
+function cokluSecim(yol, baslik, secenekler, enFazla) {
+  const secili = oku(yol + ".secim"), dolu = secili.length >= enFazla, idk = yol.replace(/\./g, "-");
+  return `<fieldset class="soru"><legend>${esc(baslik)} <span class="ipucu">En fazla ${enFazla} seçenek</span></legend>
+    <div class="secenekler">${secenekler.map(([k, t]) => {
+      const on = secili.includes(k), kapali = dolu && !on, id = idk + "-" + k;
+      return `<label class="sec${on ? " secili" : ""}${kapali ? " kapali" : ""}" for="${id}"><input type="checkbox" id="${id}" value="${esc(k)}" data-coklu="${esc(yol)}.secim"${on ? " checked" : ""}${kapali ? " disabled" : ""}><span>${esc(t)}</span></label>`;
+    }).join("")}</div>
+    ${secili.includes("baska") ? `<div class="alan"><label for="baska-${idk}">Kısaca yazın (isteğe bağlı)</label>
+      <input class="metin-alani" type="text" id="baska-${idk}" maxlength="120" data-metin="${esc(yol)}.baska" value="${esc(oku(yol + ".baska"))}" placeholder="İsim kullanmayın"></div>` : ""}
+  </fieldset>`;
+}
+function likert(yol, ifade) {
+  const secili = oku(yol);
+  return `<fieldset class="soru"><legend>${esc(ifade)}</legend>
+    <div class="likert">${[1, 2, 3, 4, 5].map(n => {
+      const id = yol.replace(/\./g, "-") + "-" + n, on = secili === String(n);
+      return `<label class="sec${on ? " secili" : ""}" for="${id}"><input type="radio" id="${id}" name="${esc(yol)}" value="${n}" data-tek="${esc(yol)}"${on ? " checked" : ""}><span>${n}</span></label>`;
+    }).join("")}</div>
+    <div class="likert-uclar" aria-hidden="true"><span>Hiç katılmıyorum</span><span>Tamamen katılıyorum</span></div></fieldset>`;
+}
+function eylemler(metin = "Devam", gecilebilir = false) {
+  return `<div class="eylemler"><button class="btn" id="devam" data-is="devam"${gecerli() ? "" : " disabled"}>${esc(metin)}</button>${gecilebilir ? `<button class="gec" data-is="gec">Bu anı cevaplamadan geç</button>` : ""}</div>`;
+}
+function cayBardaklari() {
+  const bardak = `<path class="bardak" d="M0 0 H44 C44 16 33 26 31 36 C33 46 41 60 39 72 H5 C3 60 11 46 13 36 C11 26 0 16 0 0 Z"/>`;
+  const cay = `<path class="cay" d="M2 14 H42 C40 22 33 28 31 36 C33 46 41 60 39 72 H5 C3 60 11 46 13 36 C11 28 4 22 2 14 Z"/>`;
+  const tek = c => `<g class="${c}"><ellipse class="tabak" cx="22" cy="78" rx="36" ry="6"/><rect class="seker" x="50" y="66" width="10" height="9" rx="1.5"/>${cay}${bardak}<path class="kasik" d="M26 30 L52 -14"/><ellipse class="kasik" cx="54" cy="-17" rx="4" ry="2.6" transform="rotate(-60 54 -17)"/></g>`;
+  return `<svg class="bardaklar" viewBox="0 0 320 136" aria-hidden="true"><line class="masa" x1="20" y1="122" x2="300" y2="122"/><line class="ayna" x1="160" y1="6" x2="160" y2="128"/>
+    <g class="ikisi"><g transform="translate(70 40)">${tek("sol")}</g><g transform="translate(250 40) scale(-1 1)">${tek("sag")}</g></g></svg>`;
+}
+const konusma = (kim, metin) => `<div class="konusma ${kim}"><span class="kim">${esc(KISILER[kim][0])}</span><p class="soz">${esc(metin)}</p></div>`;
+function onceki() {
+  // Adımın üstünde, aynı sahnede bir önceki anlatım ya da konuşma bağlam olarak görünür kalır.
+  for (let i = S.adim - 1; i >= 0; i--) {
+    const x = sahne().adim[i];
+    if (x.anlat) return `<p class="anlat" style="color:var(--muted);font-size:1.05rem">${esc(x.anlat)}</p>`;
+    if (x.kim) return konusma(x.kim, typeof x.soz === "function" ? x.soz() : x.soz);
+    if (x.gerek || x.secim || x.yanit || x.sayilir) return "";
+  }
+  return "";
+}
+
+/* ===================== ADIM GÖRÜNÜMLERİ ===================== */
+function gorunum() {
+  const a = adim();
+  if (a.ekran) return EKRAN[a.ekran]();
+  if (a.anlat) return `<section class="panel"><p class="anlat" tabindex="-1">${esc(a.anlat)}</p>${eylemler()}</section>`;
+  if (a.kim) return `<section class="panel"><div tabindex="-1">${konusma(a.kim, typeof a.soz === "function" ? a.soz() : a.soz)}</div>${eylemler()}</section>`;
+  if (a.gerek) {
+    const soru = a.gerek === "eb" ? "Sizce burada sizin özür dilemeniz gerekir mi?" : "Sizce burada Deniz’in özür dilemesi gerekir mi?";
+    return `<section class="panel">${onceki()}<p class="ic-ses" tabindex="-1">İçinizden geçen…</p>${tekSecim(`${a.gerek}.${a.id}.gerek`, soru, GEREK, { yatay: true })}${eylemler("Devam", true)}</section>`;
+  }
+  if (a.secim) {
+    const soru = a.secim === "eb" ? "Ne yaparsınız?" : "Deniz’den ne beklersiniz?";
+    return `<section class="panel"><p class="ic-ses" tabindex="-1">${a.secim === "eb" ? "Şimdi ne yapıyorsunuz?" : "Bu durumda Deniz’den beklentiniz ne?"}</p>${cokluSecim(`${a.secim}.${a.id}`, soru, S.karisik[a.secim + "_" + a.id], 2)}${eylemler("Seçimimi onayla", true)}</section>`;
+  }
+  if (a.yanit) {
+    const c = S.eb[a.yanit];
+    const satir = c.secim.map(k => k === "baska" ? (c.baska.trim() ? c.baska.trim() : "(Kendi bildiğiniz gibi davrandınız.)") : YANIT[a.yanit][k])
+      .sort((x, y) => (x.startsWith("(") ? 1 : 0) - (y.startsWith("(") ? 1 : 0)).join(" ");
+    return `<section class="panel"><div tabindex="-1">${konusma("siz", satir)}</div>${eylemler()}</section>`;
+  }
+  if (a.sayilir) {
+    const x = SAYILIR.find(y => y.id === a.sayilir);
+    return `<section class="panel">${onceki()}<p class="ic-ses" tabindex="-1">Deniz “özür dilerim” demedi.</p>${tekSecim("sayilir." + x.id, "Bunu Deniz’in özrü olarak sayar mısınız?", SAY_SEC)}${eylemler("Devam", true)}</section>`;
+  }
+  if (a.bencevre) {
+    return `<section class="panel">${onceki()}
+      <p class="ic-ses" tabindex="-1">Nermin Hanım gittikten sonra düşündünüz.</p>
+      <p class="not">Her ifade için iki şey soruyoruz: sizin ne düşündüğünüzü ve çevrenizdeki ebeveynlerin çoğunun ne düşündüğünü. Bu cevaplar ekranda bir daha gösterilmez.</p>
+      ${BENCEVRE.map(b => `<div class="ikili"><p class="ifade">${esc(b.t)}</p>
+        ${tekSecim(`bc.${b.id}.ben`, "Siz", BEN, { yatay: true })}${tekSecim(`bc.${b.id}.cevre`, "Çevrenizdeki ebeveynlerin çoğu", CEVRE, { yatay: true })}</div>`).join("")}
+      ${eylemler("Devam", true)}</section>`;
+  }
+  if (a.ayna) {
+    return `<section class="panel">${cayBardaklari()}
+      <h2 tabindex="-1">Koridordaki ayna</h2>
+      <p class="anlat">Koridordaki boy aynasının önünden geçerken bir an durdunuz.</p>
+      <p class="oncu">Günün ikinci yarısında aynı iki durum ters yönden gelecek: bu kez hatayı Deniz yapıyor. Siz de Deniz’den ne beklediğinizi seçeceksiniz.</p>
+      ${eylemler()}</section>`;
+  }
+  if (a.tahmin !== undefined) return ekranTahmin(a.tahmin);
+  return "";
+}
+
+const EKRAN = {
+  giris: () => `<section class="panel">
+    <h1 style="font-size:2.1rem" tabindex="-1">Bir Cumartesi</h1>
+    <p class="anlat">Deniz’in evinde bir gün geçireceksiniz. Gün boyunca küçük kırgınlıklar olacak; her birinde ne yapacağınızı siz seçeceksiniz.</p>
+    <ul class="liste">
+      <li>Oyun 10–15 dakika sürer. Doğru ya da yanlış seçim yok, seçimleriniz puanlanmaz.</li>
+      <li>İsminiz sorulmaz. Cevaplarınız yalnızca araştırma ekibine gider; siz “Cevaplarımı gönder”e basmadan hiçbir bilgi gitmez.</li>
+      <li>İstediğiniz anı cevaplamadan geçebilirsiniz.</li>
+    </ul>
+    <div class="alan"><label for="aile">Aile kodu</label>
+      <input class="metin-alani" type="text" id="aile" data-kod="aile" value="${esc(S.aile)}" placeholder="Davet kartındaki kod, örneğin K7Q2" autocomplete="off" autocapitalize="characters" maxlength="8"></div>
+    <label class="onay" for="onam"><input type="checkbox" id="onam" data-onam${S.onam ? " checked" : ""}><span>Bilgilendirme metnini okudum ve oyuna katılmayı kabul ediyorum.</span></label>
+    <p class="not"><span class="etiket">Demo</span> Olaylar, seçenekler, oranlar ve Deniz’in cümleleri örnek olarak yazılmıştır; gerçek oyunda ergenlerle yapılan anketin sonuçlarından gelecek.</p>
+    ${eylemler("Güne başla")}</section>`,
+  profil: () => `<section class="panel">
+    <h2 tabindex="-1">Önce sizi tanıyalım</h2>
+    <p class="not">Birden fazla lise öğrencisi çocuğunuz varsa, davet kartını getiren çocuğunuzu düşünerek cevaplayın.</p>
+    ${PROFIL.map(p => tekSecim("profil." + p.k, p.q, p.s)).join("")}
+    ${eylemler("Devam", true)}</section>`,
+  gozunden: () => {
+    const satir = (id, baslik) => {
+      const c = S.eb[id];
+      const k = ONCELIK.find(x => c.secim.includes(x));
+      return `<article><h3>${esc(baslik)}</h3><p>${k ? esc(GOZUNDEN[id][k]) : "Bu anı atladınız."}</p></article>`;
+    };
+    return `<section class="panel">
+      <h2 tabindex="-1">Deniz’in gözünden</h2>
+      <p class="oncu">Gün biterken Deniz, sabah ve öğlen olanları nasıl hatırlıyor?</p>
+      <div class="gozunden">${satir("s1", "Sabah, unutulan söz")}${satir("s2", "Öğlen, akrabaların yanında")}</div>
+      <p class="not"><span class="etiket">Örnek</span> Deniz kurgusal bir karakter. Gerçek oyunda bu cümleler, ankete katılan ergenlerin anlatımlarından derlenecek.</p>
+      ${eylemler()}</section>`;
+  },
+  defter: () => {
+    const etiket = (liste, k) => (liste.find(x => x[0] === k) || [, ""])[1];
+    const satir = (baslik, yon, id) => {
+      const c = S[yon][id];
+      if (!c.gerek && !c.secim.length) return `<tr><th>${esc(baslik)}</th><td>Geçtiniz</td></tr>`;
+      const sec = c.secim.map(k => etiket(yon === "eb" ? EB_SECENEK : ER_SECENEK, k)).join(" / ");
+      return `<tr><th>${esc(baslik)}</th><td>Özür gerekir mi: <b>${esc(etiket(GEREK, c.gerek) || "–")}</b><br>${esc(sec)}</td></tr>`;
+    };
+    return `<section class="panel">
+      <h2 tabindex="-1">Gün sonu defteri</h2>
+      <p class="oncu">Bugün verdiğiniz kararlar. Bu bir not değil; aynı günü siz nasıl yaşadınız, onu gösteriyor.</p>
+      <table class="defter"><tbody>
+        ${satir("Sabah: unutulan söz (siz)", "eb", "s1")}
+        ${satir("Öğlen: akrabaların yanında (siz)", "eb", "s2")}
+        ${satir("İkindi: akrabaların yanında (Deniz)", "er", "s2")}
+        ${satir("Akşam: unutulan söz (Deniz)", "er", "s1")}
+        <tr><th>Deniz’in sınıfı ne diyor?</th><td>Tahmin puanınız: <b>${toplamPuan()} / ${TAHMIN.length * 10}</b></td></tr>
+      </tbody></table>
+      ${eylemler("Çıkış kartına geç")}</section>`;
+  },
+  cikis: () => `<section class="panel">
+    <h2 tabindex="-1">Çıkış kartı</h2>
+    <p class="oncu">Son birkaç soru. Her ifadeye ne kadar katıldığınızı seçin.</p>
+    ${CIKIS.map(c => likert("cikis." + c.id, c.t)).join("")}
+    ${tekSecim("cikis.ilk", "Kendi evinizde bir kırgınlıktan sonra ilk adımı genellikle kim atar?", ILK)}
+    ${tekSecim("cikis.dus", "Sizi en çok düşündüren an hangisiydi?", DUS, { ipucu: "isteğe bağlı" })}
+    <div class="alan"><label for="neden">Neden? <span class="ipucu">isteğe bağlı</span></label>
+      <textarea class="metin-alani" id="neden" maxlength="200" data-metin="cikis.neden" placeholder="İsim ve yaşanmış özel olay yazmayın.">${esc(S.cikis.neden)}</textarea>
+      <span class="sayi" id="neden-sayi">${S.cikis.neden.length} / 200</span></div>
+    ${eylemler("Devam", true)}</section>`,
+  gonder: () => {
+    const g = S.gonderim;
+    if (!g.durum || g.durum === "gidiyor") return `<section class="panel">
+      <h2 tabindex="-1">Cevaplarınızı gönderin</h2>
+      <p>Gönderilecek bilgiler:</p>
+      <ul class="liste"><li>Aile kodu: <b>${esc(S.aile)}</b></li><li>Oyunu kimin oynadığı ve başta verdiğiniz kısa bilgiler</li><li>Gün boyunca yaptığınız seçimler ve tahminleriniz</li><li>Çıkış kartındaki cevaplarınız</li></ul>
+      <p class="not">İsim, konum ya da cihaz bilgisi gönderilmez. Gönderdikten sonra cevaplarınızı değiştiremezsiniz.</p>
+      <div class="eylemler"><button class="btn" data-is="gonder"${g.durum === "gidiyor" ? " disabled" : ""}>${g.durum === "gidiyor" ? "Gönderiliyor…" : "Cevaplarımı gönder"}</button></div></section>`;
+    const kod = `<p class="kod" aria-label="Yedek kod ${esc(g.kod)}">${g.kod.split("-").map(p => `<span>${esc(p)}</span>`).join("-<wbr>")}</p>`;
+    let s = "";
+    if (g.durum === "ok") s = `<div class="durum-kutu iyi"><b>Cevaplarınız ulaştı.</b><span>Katıldığınız için teşekkür ederiz.</span></div>`;
+    if (g.durum === "hata") s = `<div class="durum-kutu uyari"><b>Cevaplarınız gönderilemedi.</b><span>İnternet bağlantısı olmayabilir. Aşağıdaki kodu davet kartındaki boşluğa yazın; çocuğunuz kartı okula getirsin.</span></div>${kod}`;
+    if (g.durum === "demo") s = `<div class="durum-kutu uyari"><b>Demo sürümünde gönderim kapalı.</b><span>Gerçek oyunda cevaplar bu adımda araştırma ekibinin tablosuna gider. İnternet yoksa aşağıdaki yedek kod kullanılır.</span></div>${kod}
+      <details><summary>Gönderilecek kayıt (test için)</summary><pre>${esc(JSON.stringify(kayitOlustur(), null, 2))}</pre></details>`;
+    return `<section class="panel"><h2 tabindex="-1">${g.durum === "ok" ? "Gönderildi" : "Yedek kod"}</h2>${s}${eylemler()}</section>`;
+  },
+  son: () => `<section class="panel">
+    <h2 tabindex="-1">İyi geceler</h2>
+    <p>Deniz’in evindeki gün bitti. Tahmin puanınız: <b>${toplamPuan()} / ${TAHMIN.length * 10}</b></p>
+    <h3>Sofraya bir soru</h3>
+    <p>Bu akşam kendi çocuğunuza şunu sormak ister misiniz?</p>
+    <p class="soru-buyuk">“Ben senden özür dilediğimde bunu nasıl anlarsın?”</p>
+    <p class="not">Bu soru ve cevabı hiçbir yere kaydedilmez. Oyun burada bitti; sayfayı kapatabilirsiniz.</p>
+    <p class="imza">Hazırlayan: Proje ekibi</p></section>`
+};
+
+function ekranTahmin(i) {
+  const d = TAHMIN[i], t = S.tahmin[d.id];
+  const giris = i === 0 ? `<p class="anlat">Deniz’in okulunda ergenlerle bir anket yapıldı. Sizce sonuçlar nasıl çıktı?</p>
+    <p class="oncu">Bu bölüm bir tahmin oyunu: tahmininiz gerçek orana ne kadar yakınsa o kadar puan alırsınız (her soruda en fazla 10). Oyundaki tek puan budur.</p>` : "";
+  const ust = `${giris}<p class="not">Soru ${i + 1} / ${TAHMIN.length}</p><p class="ifade" tabindex="-1">Sizce ankete katılan ergenlerin yüzde kaçı ${esc(d.t)}</p>`;
+  if (!t.acik) return `<section class="panel">${ust}
+    <div class="kaydirici"><label for="tahmin-${d.id}" class="gizli">Tahmininiz (yüzde)</label>
+      <output id="cikti-${d.id}" for="tahmin-${d.id}">%${t.deger}</output>
+      <input type="range" id="tahmin-${d.id}" min="0" max="100" step="1" value="${t.deger}" data-sayi="tahmin.${d.id}.deger">
+      <div class="olcek" aria-hidden="true"><span>%0</span><span>%50</span><span>%100</span></div></div>
+    ${eylemler("Tahminimi göster", true)}</section>`;
+  const fark = t.deger - d.gercek;
+  return `<section class="panel">${ust}
+    <div class="karsilastir"><div><span class="not">Sizin tahmininiz</span><b>%${t.deger}</b></div>
+      <div class="gercek"><span class="not">Ankette</span><b>%${d.gercek}</b><span class="etiket">Örnek değer</span></div></div>
+    <div class="cubuk" aria-hidden="true"><i class="t" style="left:${t.deger}%"></i><i class="g" style="left:${d.gercek}%"></i></div>
+    <p>${fark === 0 ? "Tam isabet." : `Tahmininiz gerçek orandan ${Math.abs(fark)} puan ${fark > 0 ? "yukarıdaydı" : "aşağıdaydı"}.`} Bu sorudan <b>${tahminPuani(d.id)} puan</b> aldınız.</p>
+    ${eylemler()}</section>`;
+}
+
+/* ===================== GEÇERLİLİK VE İLERLEME ===================== */
+function gecerli() {
+  const a = adim();
+  if (a.ekran === "giris") return S.aile.length >= 2 && S.onam;
+  if (a.ekran === "profil") return PROFIL.every(p => S.profil[p.k]);
+  if (a.ekran === "cikis") return CIKIS.every(c => S.cikis[c.id]) && !!S.cikis.ilk;
+  if (a.gerek) return !!S[a.gerek][a.id].gerek;
+  if (a.secim) return S[a.secim][a.id].secim.length > 0;
+  if (a.sayilir) return !!S.sayilir[a.sayilir];
+  if (a.bencevre) return BENCEVRE.every(b => S.bc[b.id].ben && S.bc[b.id].cevre);
+  return true;
+}
+// Bir an geçildiyse o anın kalan adımları (seçim, konuşma balonu) atlanır.
+function atlanacakMi(a) {
+  if (!a) return false;
+  if (a.secim && S.gecilen[a.secim + a.id]) return true;
+  if (a.yanit && S.gecilen["eb" + a.yanit]) return true;
+  return false;
+}
+function sonrakine() {
+  do {
+    S.adim++;
+    if (S.adim >= sahne().adim.length) { S.sahne++; S.adim = 0; }
+  } while (atlanacakMi(adim()));
+  ciz(true);
+}
+function ileri() {
+  const a = adim();
+  if (a.ekran === "giris") S.basla = Date.now();
+  if (a.tahmin !== undefined) { const t = S.tahmin[TAHMIN[a.tahmin].id]; if (!t.acik && !t.atlandi) { t.acik = true; return ciz(false); } }
+  sonrakine();
+}
+function gec() {
+  const a = adim();
+  if (a.ekran === "profil") PROFIL.forEach(p => S.profil[p.k] = null);
+  if (a.ekran === "cikis") { CIKIS.forEach(c => S.cikis[c.id] = null); S.cikis.ilk = null; S.cikis.dus = null; S.cikis.neden = ""; }
+  if (a.gerek || a.secim) { const y = a.gerek || a.secim; S[y][a.id] = { gerek: null, secim: [], baska: "" }; S.gecilen[y + a.id] = true; }
+  if (a.sayilir) S.sayilir[a.sayilir] = null;
+  if (a.bencevre) BENCEVRE.forEach(b => S.bc[b.id] = { ben: null, cevre: null });
+  if (a.tahmin !== undefined) { const t = S.tahmin[TAHMIN[a.tahmin].id]; t.atlandi = true; t.acik = false; }
+  sonrakine();
+}
+
+/* ===================== ÇİZİM ===================== */
+function ustCiz() {
+  const sc = sahne(), olaylar = SAHNELER.slice(1), simdi = S.sahne - 1;
+  const puanVar = TAHMIN.some(t => S.tahmin[t.id].acik);
+  document.getElementById("ust").innerHTML = `<header class="ust" style="margin-bottom:8px">
+      <div class="marka">Aynalı Sofra <span class="etiket">Demo</span></div>${puanVar ? `<div class="puan">Tahmin puanı ${toplamPuan()}</div>` : ""}</header>
+    <div class="gun"><span class="saat" aria-label="Saat ${sc.saat}">${sc.saat}</span>
+      <div class="gun-bilgi"><b>${esc(sc.baslik)}</b>
+        <div class="cizgi" aria-hidden="true">${olaylar.map((_, i) => `<i class="${i < simdi ? "bitti" : i === simdi ? "simdi" : ""}"></i>`).join("")}</div>
+        <span>Cumartesi</span></div></div>`;
+}
+function ciz(odakBaslik) {
+  const sc = sahne(), er = sc.yon === "er";
+  document.documentElement.style.setProperty("--vurgu", er ? "var(--er)" : "var(--eb)");
+  document.documentElement.style.setProperty("--vurgu-soft", er ? "var(--er-soft)" : "var(--eb-soft)");
+  const odakId = !odakBaslik && document.activeElement && document.activeElement.id;
+  ustCiz(); evGuncelle();
+  app.innerHTML = gorunum();
+  const a = adim();
+  if (a.ayna) { const c = document.getElementById("aynaCam"); c.classList.remove("parla"); void c.getBBox(); c.classList.add("parla"); }
+  if (odakBaslik) {
+    const h = app.querySelector("[tabindex='-1']"); if (h) h.focus({ preventScroll: true });
+    const ev = document.getElementById("ev"); if (ev.getBoundingClientRect().top < 0) window.scrollTo(0, 0);
+  } else if (odakId) { const el = document.getElementById(odakId); if (el) el.focus({ preventScroll: true }); }
+}
+function devamGuncelle() { const b = document.getElementById("devam"); if (b) b.disabled = !gecerli(); }
+
+/* ===================== KAYIT VE GÖNDERİM ===================== */
+function sutunlar() {
+  const k = ["surum", "kaynak", "aile", "sira", "baslangic", "bitis", "sure_sn"];
+  PROFIL.forEach(p => k.push(p.k));
+  SENARYOLAR.forEach(s => ["eb", "er"].forEach(y => k.push(`${s.id}_${y}_gerek`, `${s.id}_${y}_secim`, `${s.id}_${y}_baska`)));
+  SAYILIR.forEach(x => k.push(x.id));
+  BENCEVRE.forEach(b => k.push(`${b.id}_ben`, `${b.id}_cevre`));
+  TAHMIN.forEach(t => k.push(`${t.id}_tahmin`, `${t.id}_gercek`, `${t.id}_puan`));
+  k.push("tahmin_toplam");
+  CIKIS.forEach(c => k.push(c.id));
+  k.push("ilk_adim", "dusunduren", "dusunduren_neden");
+  return k;
+}
+const iso = ms => ms ? new Date(ms).toISOString() : "";
+function kayitOlustur() {
+  const r = { surum: SURUM, kaynak: "cevrimici", aile: S.aile, sira: S.sira, baslangic: iso(S.basla), bitis: iso(S.bitis || Date.now()),
+    sure_sn: S.basla ? Math.round(((S.bitis || Date.now()) - S.basla) / 1000) : "" };
+  PROFIL.forEach(p => r[p.k] = S.profil[p.k] || "");
+  SENARYOLAR.forEach(s => ["eb", "er"].forEach(y => {
+    const c = S[y][s.id];
+    r[`${s.id}_${y}_gerek`] = c.gerek || "";
+    r[`${s.id}_${y}_secim`] = (y === "eb" ? EB_SECENEK : ER_SECENEK).map(o => o[0]).filter(k => c.secim.includes(k)).join("|");
+    r[`${s.id}_${y}_baska`] = c.secim.includes("baska") ? c.baska.trim() : "";
+  }));
+  SAYILIR.forEach(x => r[x.id] = S.sayilir[x.id] || "");
+  BENCEVRE.forEach(b => { r[`${b.id}_ben`] = S.bc[b.id].ben || ""; r[`${b.id}_cevre`] = S.bc[b.id].cevre || ""; });
+  TAHMIN.forEach(t => { const x = S.tahmin[t.id], v = x.acik && !x.atlandi; r[`${t.id}_tahmin`] = v ? x.deger : ""; r[`${t.id}_gercek`] = t.gercek; r[`${t.id}_puan`] = v ? tahminPuani(t.id) : ""; });
+  r.tahmin_toplam = toplamPuan();
+  CIKIS.forEach(c => r[c.id] = S.cikis[c.id] || "");
+  r.ilk_adim = S.cikis.ilk || ""; r.dusunduren = S.cikis.dus || ""; r.dusunduren_neden = (S.cikis.neden || "").trim();
+  const sirali = {}; sutunlar().forEach(k => sirali[k] = r[k] ?? ""); return sirali;
+}
+
+/* Yedek kod: cevaplar sayılara çevrilip tek bir büyük sayıda paketlenir ve 32'lik alfabeyle yazılır.
+   Bu bir gizlemedir, şifreleme değil: göz ucuyla okunmaz ama çözme mantığı bu dosyadadır. Açık uçlu yazılar koda girmez. */
+const B32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+function kodAlanlari() {
+  const A = [{ k: "sira", s: ["A", "B"] }];
+  PROFIL.forEach(p => A.push({ k: p.k, s: p.s.map(x => x[0]) }));
+  SENARYOLAR.forEach(s => {
+    A.push({ k: `${s.id}_eb_gerek`, s: GEREK.map(x => x[0]) }, { k: `${s.id}_eb_secim`, c: EB_SECENEK.map(x => x[0]) });
+    A.push({ k: `${s.id}_er_gerek`, s: GEREK.map(x => x[0]) }, { k: `${s.id}_er_secim`, c: ER_SECENEK.map(x => x[0]) });
+  });
+  SAYILIR.forEach(x => A.push({ k: x.id, s: SAY_SEC.map(y => y[0]) }));
+  BENCEVRE.forEach(b => A.push({ k: `${b.id}_ben`, s: BEN.map(y => y[0]) }, { k: `${b.id}_cevre`, s: CEVRE.map(y => y[0]) }));
+  TAHMIN.forEach(t => A.push({ k: `${t.id}_tahmin`, n: 101 }));
+  CIKIS.forEach(c => A.push({ k: c.id, s: ["1", "2", "3", "4", "5"] }));
+  A.push({ k: "ilk_adim", s: ILK.map(x => x[0]) }, { k: "dusunduren", s: DUS.map(x => x[0]) });
+  return A;
+}
+const taban = a => a.s ? BigInt(a.s.length + 1) : a.c ? (1n << BigInt(a.c.length)) : BigInt(a.n + 1);
+function sayiya(a, v) {
+  if (a.s) { const i = a.s.indexOf(String(v)); return BigInt(i < 0 ? 0 : i + 1); }
+  if (a.c) { let m = 0n; String(v || "").split("|").filter(Boolean).forEach(x => { const i = a.c.indexOf(x); if (i >= 0) m |= (1n << BigInt(i)); }); return m; }
+  return v === "" || v == null ? 0n : BigInt(Number(v) + 1);
+}
+function sayidan(a, x) {
+  if (a.s) return x === 0n ? "" : a.s[Number(x) - 1];
+  if (a.c) return a.c.filter((_, i) => (x >> BigInt(i)) & 1n).join("|");
+  return x === 0n ? "" : Number(x) - 1;
+}
+function govdeUzunlugu() { let p = 1n; kodAlanlari().forEach(a => p *= taban(a)); let L = 0, q = p - 1n; while (q > 0n) { q /= 32n; L++; } return Math.max(L, 1); }
+function kontrolHanesi(govde, aile) { let t = 0; for (let i = 0; i < govde.length; i++) t += B32.indexOf(govde[i]) * (i + 1); for (let i = 0; i < aile.length; i++) t += aile.charCodeAt(i) * (i + 7); return B32[t % 32]; }
+function kodOlustur(r) {
+  let v = 0n, c = 1n;
+  kodAlanlari().forEach(a => { v += sayiya(a, r[a.k]) * c; c *= taban(a); });
+  let s = ""; const L = govdeUzunlugu();
+  for (let i = 0; i < L; i++) { s = B32[Number(v % 32n)] + s; v /= 32n; }
+  s += kontrolHanesi(s, r.aile);
+  return r.aile + "-" + s.match(/.{1,4}/g).join("-");
+}
+function kodCoz(kod) {
+  const m = String(kod).trim().toUpperCase().match(/^([A-Z0-9]{2,8})[\s\-]+(.+)$/);
+  if (!m) throw new Error("Kodun başında aile kodu olmalı (örneğin K7Q2-…).");
+  const aile = m[1], g = m[2].replace(/O/g, "0").replace(/[IL]/g, "1").replace(/[^0-9A-Z]/g, "");
+  const L = govdeUzunlugu();
+  if (g.length !== L + 1) throw new Error(`Kodda aile kodundan sonra ${L + 1} karakter olmalı; ${g.length} karakter var.`);
+  const govde = g.slice(0, L);
+  if (kontrolHanesi(govde, aile) !== g[L]) throw new Error("Kontrol karakteri tutmuyor; kod yanlış yazılmış olabilir.");
+  let v = 0n; for (const ch of govde) { const d = B32.indexOf(ch); if (d < 0) throw new Error(`Geçersiz karakter: ${ch}`); v = v * 32n + BigInt(d); }
+  const r = { surum: SURUM, kaynak: "yedek_kod", aile };
+  kodAlanlari().forEach(a => { const t = taban(a); r[a.k] = sayidan(a, v % t); v /= t; });
+  TAHMIN.forEach(t => { const d = r[`${t.id}_tahmin`]; r[`${t.id}_gercek`] = t.gercek; r[`${t.id}_puan`] = d === "" ? "" : puanHesap(d, t.gercek); });
+  r.tahmin_toplam = TAHMIN.reduce((s, t) => s + (Number(r[`${t.id}_puan`]) || 0), 0);
+  const sirali = {}; sutunlar().forEach(k => sirali[k] = r[k] ?? ""); return sirali;
+}
+
+async function gonder() {
+  S.bitis = Date.now();
+  const kayit = kayitOlustur();
+  S.gonderim = { durum: "gidiyor", kod: kodOlustur(kayit) };
+  ciz(false);
+  if (!GONDERIM_ADRESI) { S.gonderim.durum = "demo"; return ciz(true); }
+  try {
+    const ctrl = new AbortController(), zaman = setTimeout(() => ctrl.abort(), 15000);
+    // Gövde düz metin olarak gider; böylece tarayıcı ek izin isteği (preflight) yapmaz.
+    const yanit = await fetch(GONDERIM_ADRESI, { method: "POST", body: JSON.stringify(kayit), signal: ctrl.signal });
+    clearTimeout(zaman);
+    const j = await yanit.json();
+    S.gonderim.durum = j && j.ok ? "ok" : "hata";
+  } catch (e) { S.gonderim.durum = "hata"; }
+  ciz(true);
+}
+
+
+
+/* ===================== OLAYLAR ===================== */
+app.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.tek) { yaz(el.dataset.tek, el.value); ciz(false); }
+  else if (el.dataset.coklu) {
+    const liste = oku(el.dataset.coklu), k = el.value;
+    if (el.checked && !liste.includes(k)) liste.push(k);
+    if (!el.checked) liste.splice(liste.indexOf(k), 1);
+    ciz(false);
+  }
+  else if (el.hasAttribute("data-onam")) { S.onam = el.checked; devamGuncelle(); }
+});
+app.addEventListener("input", e => {
+  const el = e.target;
+  if (el.dataset.kod) { S.aile = temizKod(el.value); if (el.value !== S.aile) el.value = S.aile; devamGuncelle(); }
+  else if (el.dataset.metin) { yaz(el.dataset.metin, el.value); const s = document.getElementById("neden-sayi"); if (s && el.id === "neden") s.textContent = `${el.value.length} / 200`; devamGuncelle(); }
+  else if (el.dataset.sayi) { const v = Number(el.value); yaz(el.dataset.sayi, v); const o = el.parentNode.querySelector("output"); if (o) o.textContent = "%" + v; }
+});
+app.addEventListener("click", e => {
+  const b = e.target.closest("[data-is]"); if (!b || b.disabled) return;
+  if (b.dataset.is === "devam") ileri();
+  else if (b.dataset.is === "gec") gec();
+  else if (b.dataset.is === "gonder") gonder();
+});
+
+/* ===================== ÇÖZÜCÜ (?coz=1) =====================
+   Araştırma ekibi için: kâğıtla gelen yedek kodları tabloya yapıştırılabilir satırlara çevirir. */
+function cozucu() {
+  document.title = "Aynalı Sofra · Kod çözücü";
+  app.innerHTML = `<section class="panel">
+    <h2>Yedek kod çözücü</h2>
+    <p class="oncu">Kâğıtla gelen kodları her satıra bir kod gelecek şekilde yapıştırın.</p>
+    <textarea class="metin-alani" id="kodlar" style="min-height:140px" placeholder="K7Q2-XXXX-XXXX-…"></textarea>
+    <div class="eylemler"><button class="btn" id="coz">Kodları çöz</button></div>
+    <div id="sonuc"></div>
+  </section>`;
+  document.getElementById("coz").onclick = () => {
+    const satirlar = document.getElementById("kodlar").value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const kayitlar = [], hatalar = [];
+    satirlar.forEach((s, i) => { try { kayitlar.push(kodCoz(s)); } catch (err) { hatalar.push(`${i + 1}. satır (${s}): ${err.message}`); } });
+    const k = sutunlar(), hucre = v => /[",\n;]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+    const csv = [k.join(",")].concat(kayitlar.map(r => k.map(x => hucre(r[x])).join(","))).join("\n");
+    document.getElementById("sonuc").innerHTML = `
+      ${hatalar.length ? `<div class="durum-kutu uyari"><b>${hatalar.length} kod çözülemedi</b>${hatalar.map(h => `<span>${esc(h)}</span>`).join("")}</div>` : ""}
+      <p><b>${kayitlar.length}</b> kod çözüldü. Aşağıdaki satırları tabloya yapıştırabilirsiniz.</p>
+      <textarea class="metin-alani" style="min-height:160px" readonly>${esc(csv)}</textarea>`;
+  };
+}
+
+
+
+window.AynaliSofra = { kodOlustur, kodCoz, kayitOlustur, durum: () => S };
+if (parametre("coz") === "1") { document.getElementById("ev").hidden = true; cozucu(); } else { evCiz(); ciz(false); }
+</script>
+</body>
+</html>
